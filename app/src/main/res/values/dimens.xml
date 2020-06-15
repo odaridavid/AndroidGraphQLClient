@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_16">16dp</dimen>
+    <dimen name="margin_32">32dp</dimen>
+    <dimen name="character_image_width">80dp</dimen>
+    <dimen name="character_image_height">80dp</dimen>
+    <dimen name="character_name_text_size">18sp</dimen>
+    <dimen name="lottie_animation_width">320dp</dimen>
+    <dimen name="lottie_animation_height">320dp</dimen>
+    <dimen name="error_text_size">22sp</dimen>
+</resources>

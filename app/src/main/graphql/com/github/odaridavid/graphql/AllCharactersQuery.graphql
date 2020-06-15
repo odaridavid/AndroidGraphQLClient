@@ -1,0 +1,8 @@
+query AllCharacters{
+    characters{
+        results{
+            name
+            image
+        }
+    }
+}

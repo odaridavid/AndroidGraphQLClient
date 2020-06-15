@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="character_image_width">120dp</dimen>
+    <dimen name="character_image_height">120dp</dimen>
+    <dimen name="character_name_text_size">22sp</dimen>
+    <dimen name="lottie_animation_width">560dp</dimen>
+    <dimen name="lottie_animation_height">560dp</dimen>
+    <dimen name="error_text_size">36sp</dimen>
+</resources>
