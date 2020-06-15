@@ -6,18 +6,18 @@ This is my playground for working with graphql on Android.
 
 ## Demo
 
-<img src="art/s1.png" width="200"/> | <img src="art/s2.png" width="200"/> 
+<img src="art/s1.png" width="200"/> <img src="art/s2.png" width="200"/> 
 
 ## Libraries
 
-[Apollo-Android](https://github.com/apollographql/apollo-android)
-[Coil](https://github.com/coil-kt/coil)
-[Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
-[Material Design](https://material.io/develop/android/)
-[Jetpack](https://developer.android.com/jetpack)
-[Lottie](https://github.com/airbnb/lottie-android)
-[MockWebServer](https://github.com/square/okhttp/tree/master/mockwebserver)
-[Okhttp](https://github.com/square/okhttp)
+- [Apollo-Android](https://github.com/apollographql/apollo-android)
+- [Coil](https://github.com/coil-kt/coil)
+- [Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
+- [Material Design](https://material.io/develop/android/)
+- [Jetpack](https://developer.android.com/jetpack)
+- [Lottie](https://github.com/airbnb/lottie-android)
+- [MockWebServer](https://github.com/square/okhttp/tree/master/mockwebserver)
+- [Okhttp](https://github.com/square/okhttp)
 
 ## TODO
 
