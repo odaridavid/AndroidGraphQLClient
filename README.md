@@ -22,7 +22,6 @@ This is my playground for working with graphql on Android.
 ## TODO
 
 - Get the tests working.
-- Add Pagination a good chance to explore paging 3.
 - Look into Http Caching.
 
 ## License
