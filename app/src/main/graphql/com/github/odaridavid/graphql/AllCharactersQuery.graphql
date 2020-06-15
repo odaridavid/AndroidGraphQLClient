@@ -1,5 +1,10 @@
-query AllCharacters{
-    characters{
+query AllCharacters($page:Int = 1){
+    characters(page: $page){
+        info{
+            pages
+            next
+            prev
+        }
         results{
             name
             image

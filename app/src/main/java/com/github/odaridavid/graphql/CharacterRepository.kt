@@ -14,10 +14,10 @@
 package com.github.odaridavid.graphql
 
 import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.Input
 import com.apollographql.apollo.api.Response
-import com.apollographql.apollo.coroutines.toFlow
+import com.apollographql.apollo.coroutines.toDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 
 
 object CharacterRepository {
@@ -27,7 +27,10 @@ object CharacterRepository {
     }
 
     @ExperimentalCoroutinesApi
-    fun fetchAllCharacters(): Flow<Response<AllCharactersQuery.Data?>> {
-        return apolloClient.query(AllCharactersQuery()).toFlow()
+    suspend fun fetchAllCharacters(page: Int): Response<AllCharactersQuery.Data?> {
+        return apolloClient
+            .query(AllCharactersQuery(page = Input.fromNullable(page)))
+            .toDeferred()
+            .await()
     }
 }

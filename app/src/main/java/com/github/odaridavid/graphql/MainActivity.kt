@@ -18,24 +18,56 @@ package com.github.odaridavid.graphql
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.paging.LoadState
+import androidx.paging.PagingData
 import com.github.odaridavid.graphql.databinding.ActivityMainBinding
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 
-internal class MainActivity : AppCompatActivity() {
+internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var charactersAdapter: CharactersAdapter
     private val mainViewModel: MainViewModel by viewModels()
+    private var pagingJob: Job? = null
 
     @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        charactersAdapter = CharactersAdapter()
+        observeLoadState()
+        onRefresh()
         observeState()
         mainViewModel.getCharacters()
+    }
+
+    @ExperimentalCoroutinesApi
+    private fun onRefresh() {
+        binding.swiperefreshlayout.setOnRefreshListener {
+            //TODO Handle refresh in a better way with caching in mind
+            pagingJob?.cancel()
+            mainViewModel.getCharacters()
+        }
+    }
+
+    private fun observeLoadState() {
+        launch {
+            charactersAdapter.loadStateFlow.collectLatest { state ->
+                when (val s = state.refresh) {
+                    is LoadState.Error -> showError("${s.error.message}")
+                    is LoadState.Loading -> showLoading()
+                    is LoadState.NotLoading -> hideLoading()
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        cancel()
+        super.onDestroy()
     }
 
     private fun observeState() {
@@ -43,7 +75,7 @@ internal class MainActivity : AppCompatActivity() {
             when (state) {
                 is State.Success -> showSuccess(state.results)
                 is State.Loading -> showLoading()
-                is State.Failure -> showError(state.message)
+                is State.Error -> showError(state.message)
             }
         }
     }
@@ -52,15 +84,31 @@ internal class MainActivity : AppCompatActivity() {
         binding.loadingCharactersProgressBar.show()
     }
 
-    private fun showSuccess(characters: List<Character>) {
-        charactersAdapter = CharactersAdapter()
-        charactersAdapter.submitList(characters)
-        binding.charactersRecyclerView.adapter = charactersAdapter
+    private fun hideLoading() {
         binding.loadingCharactersProgressBar.hide()
     }
 
+    private fun showSuccess(characters: PagingData<Character>) {
+        hideLoading()
+        hideError()
+        binding.charactersRecyclerView.show()
+        if (binding.swiperefreshlayout.isRefreshing) {
+            binding.swiperefreshlayout.isRefreshing = false
+        }
+        pagingJob = launch {
+            charactersAdapter.submitData(characters)
+        }
+        binding.charactersRecyclerView.adapter = charactersAdapter
+
+    }
+
+    private fun hideError(){
+        binding.errorContainer.hide()
+    }
+
     private fun showError(message: String) {
-        binding.loadingCharactersProgressBar.hide()
+        hideLoading()
+        binding.charactersRecyclerView.hide()
         binding.errorContainer.show()
         Snackbar
             .make(binding.charactersRecyclerView, message, Snackbar.LENGTH_LONG)

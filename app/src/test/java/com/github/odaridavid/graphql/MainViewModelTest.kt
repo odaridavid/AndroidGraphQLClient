@@ -14,26 +14,19 @@
 package com.github.odaridavid.graphql
 
 import android.os.Build
-import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ActivityScenario.launch
-import androidx.test.espresso.Espresso.onData
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import okhttp3.mockwebserver.MockWebServer
-import org.hamcrest.Matchers.instanceOf
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
-//TODO config tests to work
+//TODO Figure out how to swap in localhost url with real url
 @Config(sdk = [Build.VERSION_CODES.P])
 @RunWith(AndroidJUnit4::class)
-internal class MainActivityTest {
+internal class MainViewModelTest {
 
-    private lateinit var scenario: ActivityScenario<MainActivity>
     private lateinit var mockWebServer: MockWebServer
 
     @Before
@@ -42,12 +35,22 @@ internal class MainActivityTest {
             start(8080)
             url("/")
         }
-        scenario = launch(MainActivity::class.java)
+
     }
 
     @Test
-    fun shouldLoadCharacters() {
-        onData(instanceOf(Character::class.java)).check(matches(isDisplayed()))
+    fun shouldReturnSuccessStateResponse() {
+
+    }
+
+    @Test
+    fun shouldReturnLoadingStateResponse() {
+
+    }
+
+    @Test
+    fun shouldReturnErrorStateResponse() {
+
     }
 
     @After

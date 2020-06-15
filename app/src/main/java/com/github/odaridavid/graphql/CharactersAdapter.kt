@@ -13,19 +13,18 @@
  **/
 package com.github.odaridavid.graphql;
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.ColorRes
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.api.load
 import com.github.odaridavid.graphql.databinding.ItemCharacterBinding
 
 
 internal class CharactersAdapter :
-    ListAdapter<Character, CharactersAdapter.CharacterViewHolder>(DiffUtil) {
+    PagingDataAdapter<Character, CharactersAdapter.CharacterViewHolder>(DiffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CharacterViewHolder {
         val context = parent.context
@@ -41,9 +40,9 @@ internal class CharactersAdapter :
         private val binding: ItemCharacterBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(character: Character) {
-            binding.characterNameTextView.text = character.name
-            binding.characterImageView.load(character.imageUrl) {
+        fun bind(character: Character?) {
+            binding.characterNameTextView.text = character?.name
+            binding.characterImageView.load(character?.imageUrl) {
                 placeholder(getRandomColor())
             }
         }
@@ -52,11 +51,11 @@ internal class CharactersAdapter :
     companion object {
         val DiffUtil = object : DiffUtil.ItemCallback<Character>() {
             override fun areItemsTheSame(oldItem: Character, newItem: Character): Boolean {
-                return oldItem == newItem
+                return oldItem.imageUrl == newItem.imageUrl && oldItem.name == newItem.name
             }
 
             override fun areContentsTheSame(oldItem: Character, newItem: Character): Boolean {
-                return oldItem.imageUrl == newItem.imageUrl && oldItem.name == newItem.name
+                return oldItem == newItem
             }
         }
 

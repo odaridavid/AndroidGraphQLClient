@@ -68,6 +68,8 @@ dependencies {
     implementation androidX.activityKtx
     implementation androidX.viewmodelKtx
     implementation androidX.liveDataKtx
+    implementation androidX.paging
+    implementation androidX.swipeRefreshLayout
     implementation design.material
     implementation thirdParty.apolloRuntime
     implementation thirdParty.apolloCoroutines
@@ -80,6 +82,7 @@ dependencies {
     testImplementation testing.archTest
     testImplementation testing.espressoCore
     testImplementation testing.robolectric
+    testImplementation testing.pagingTest
 }
 
 apollo {

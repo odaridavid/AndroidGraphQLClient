@@ -17,7 +17,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.apollographql.apollo.api.Response
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -32,34 +35,35 @@ internal class MainViewModel : ViewModel() {
 
     @ExperimentalCoroutinesApi
     fun getCharacters() {
-        _state.value = State.Loading
+        initLoading()
         viewModelScope.launch {
-            CharacterRepository.fetchAllCharacters()
-                .catch { e ->
-                    _state.value = State.Failure("${e.message}")
-                }
-                .collect { response: Response<AllCharactersQuery.Data?> ->
-                    response.data?.characters?.results?.let { results ->
-                        val characters = mapResponseToPresentationModel(results)
-                        _state.value = State.Success(characters)
-                    }
+            Pager(PagingConfig(20)) { CharactersPagingSource() }
+                .flow
+                .cachedIn(viewModelScope)
+                .catch { e -> initError("${e.message}") }
+                .collect { value: PagingData<Character> ->
+                    initSuccess(value)
                 }
         }
     }
 
-    private fun mapResponseToPresentationModel(results: List<AllCharactersQuery.Result?>): List<Character> {
-        val characters = mutableListOf<Character>()
-        for (result in results) {
-            val characterImage = result?.image
-            val characterName = result?.name
-            characters.add(Character(characterName, characterImage))
-        }
-        return characters
+
+    private fun initLoading() {
+        _state.value = State.Loading
     }
+
+    private fun initSuccess(data: PagingData<Character>) {
+        _state.value = State.Success(data)
+    }
+
+    private fun initError(message: String) {
+        _state.value = State.Error(message)
+    }
+
 }
 
 internal sealed class State {
-    data class Failure(val message: String) : State()
-    data class Success(val results: List<Character>) : State()
+    data class Error(val message: String) : State()
+    data class Success(val results: PagingData<Character>) : State()
     object Loading : State()
 }
