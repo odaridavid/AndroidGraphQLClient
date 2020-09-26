@@ -65,6 +65,7 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
 
             } else {
                 binding.swiperefreshlayout.isRefreshing = false
+                binding.charactersRecyclerView.show()
                 hideLoading()
                 hideError()
 
