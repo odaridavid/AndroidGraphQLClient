@@ -38,6 +38,10 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         charactersAdapter = CharactersAdapter()
+
+        binding.charactersRecyclerView.adapter = charactersAdapter.withLoadStateFooter(
+            footer = CharacterLoadingStateAdapter { retry() }
+        )
         observeLoadState()
         onRefresh()
         observeState()
@@ -48,21 +52,48 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
     private fun onRefresh() {
         binding.swiperefreshlayout.setOnRefreshListener {
             //TODO Handle refresh in a better way with caching in mind
-            pagingJob?.cancel()
-            mainViewModel.getCharacters()
+//            pagingJob?.cancel()
+//            mainViewModel.getCharacters()
+
+            charactersAdapter.refresh()
         }
     }
 
     private fun observeLoadState() {
-        launch {
-            charactersAdapter.loadStateFlow.collectLatest { state ->
-                when (val s = state.refresh) {
-                    is LoadState.Error -> showError("${s.error.message}")
-                    is LoadState.Loading -> showLoading()
-                    is LoadState.NotLoading -> hideLoading()
+
+        charactersAdapter.addLoadStateListener { loadState ->
+
+            if (loadState.refresh is LoadState.Loading) {
+                showLoading()
+
+            } else {
+                hideLoading()
+
+                val error = when {
+                    loadState.prepend is LoadState.Error -> loadState.prepend as LoadState.Error
+                    loadState.append is LoadState.Error -> loadState.append as LoadState.Error
+                    loadState.refresh is LoadState.Error -> loadState.refresh as LoadState.Error
+
+                    else -> null
+                }
+                error?.let {
+                    if (charactersAdapter.itemCount == 0) {
+                        it.error.message?.let { it1 -> showError(it1) }
+                    }
+
                 }
             }
+
         }
+//        launch {
+//            charactersAdapter.loadStateFlow.collectLatest { state ->
+//                when (val s = state.refresh) {
+//                    is LoadState.Error -> showError("${s.error.message}")
+//                    is LoadState.Loading -> showLoading()
+//                    is LoadState.NotLoading -> hideLoading()
+//                }
+//            }
+//        }
     }
 
     override fun onDestroy() {
@@ -95,14 +126,15 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
         if (binding.swiperefreshlayout.isRefreshing) {
             binding.swiperefreshlayout.isRefreshing = false
         }
+        pagingJob?.cancel()
         pagingJob = launch {
             charactersAdapter.submitData(characters)
         }
-        binding.charactersRecyclerView.adapter = charactersAdapter
+
 
     }
 
-    private fun hideError(){
+    private fun hideError() {
         binding.errorContainer.hide()
     }
 
@@ -115,6 +147,10 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
             .setBackgroundTint(loadColor(R.color.colorError))
             .setTextColor(loadColor(R.color.colorOnError))
             .show()
+    }
+
+    private fun retry() {
+        charactersAdapter.retry()
     }
 
 }
