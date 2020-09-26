@@ -18,6 +18,7 @@ package com.github.odaridavid.graphql
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import com.github.odaridavid.graphql.databinding.ActivityMainBinding
@@ -44,17 +45,12 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
         )
         observeLoadState()
         onRefresh()
-        observeState()
-        mainViewModel.getCharacters()
+        startGettingCharacters()
     }
 
     @ExperimentalCoroutinesApi
     private fun onRefresh() {
         binding.swiperefreshlayout.setOnRefreshListener {
-            //TODO Handle refresh in a better way with caching in mind
-//            pagingJob?.cancel()
-//            mainViewModel.getCharacters()
-
             charactersAdapter.refresh()
         }
     }
@@ -65,9 +61,12 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
 
             if (loadState.refresh is LoadState.Loading) {
                 showLoading()
+                hideError()
 
             } else {
+                binding.swiperefreshlayout.isRefreshing = false
                 hideLoading()
+                hideError()
 
                 val error = when {
                     loadState.prepend is LoadState.Error -> loadState.prepend as LoadState.Error
@@ -78,22 +77,14 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
                 }
                 error?.let {
                     if (charactersAdapter.itemCount == 0) {
-                        it.error.message?.let { it1 -> showError(it1) }
+                        it.error.message?.let { msg -> showError(msg) }
                     }
 
                 }
             }
 
         }
-//        launch {
-//            charactersAdapter.loadStateFlow.collectLatest { state ->
-//                when (val s = state.refresh) {
-//                    is LoadState.Error -> showError("${s.error.message}")
-//                    is LoadState.Loading -> showLoading()
-//                    is LoadState.NotLoading -> hideLoading()
-//                }
-//            }
-//        }
+
     }
 
     override fun onDestroy() {
@@ -101,15 +92,6 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
         super.onDestroy()
     }
 
-    private fun observeState() {
-        mainViewModel.state.observe(this) { state ->
-            when (state) {
-                is State.Success -> showSuccess(state.results)
-                is State.Loading -> showLoading()
-                is State.Error -> showError(state.message)
-            }
-        }
-    }
 
     private fun showLoading() {
         binding.loadingCharactersProgressBar.show()
@@ -119,18 +101,17 @@ internal class MainActivity : AppCompatActivity(), CoroutineScope by MainScope()
         binding.loadingCharactersProgressBar.hide()
     }
 
-    private fun showSuccess(characters: PagingData<Character>) {
-        hideLoading()
-        hideError()
+    @ExperimentalCoroutinesApi
+    private fun startGettingCharacters() {
         binding.charactersRecyclerView.show()
-        if (binding.swiperefreshlayout.isRefreshing) {
-            binding.swiperefreshlayout.isRefreshing = false
-        }
-        pagingJob?.cancel()
-        pagingJob = launch {
-            charactersAdapter.submitData(characters)
-        }
 
+        pagingJob?.cancel()
+        pagingJob = lifecycleScope.launch {
+            mainViewModel.getCharacters()
+                .collectLatest {
+                    charactersAdapter.submitData(it)
+                }
+        }
 
     }
 
